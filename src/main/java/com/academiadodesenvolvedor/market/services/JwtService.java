@@ -29,7 +29,7 @@ public class JwtService implements JwtServiceContract {
 
     @Override
     public DecodedJWT decode(String jwt) throws Exception {
-        return null;
+        return this.getVerifier().verify(jwt);
     }
 
     @Override
@@ -51,5 +51,20 @@ public class JwtService implements JwtServiceContract {
     @Override
     public JWTVerifier getVerifier() throws Exception {
         return JWT.require(this.getAlgorithm()).build();
+    }
+
+    @Override
+    public boolean isTokenValid(String jwt){
+        try{
+            DecodedJWT claims = this.decode(jwt);
+            LocalDateTime dateExpiration = claims.getExpiresAt()
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+
+            return !LocalDateTime.now().isAfter(dateExpiration);
+        }catch (Exception e){
+            return false;
+        }
     }
 }
